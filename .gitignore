@@ -1,0 +1,8 @@
+#Hide all
+*.*
+
+#Dont hide
+!.gitignore
+
+!/src/*
+!p2pnetwork.iml
