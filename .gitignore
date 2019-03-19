@@ -3,7 +3,8 @@
 
 #Hide .java
 *.java
-
+*.project
+src/.project
 #hide gitignore (makes it local)
 .gitignore
 
