@@ -1,8 +1,11 @@
 #Hide all
 *.*
 
-#Dont hide
-!.gitignore
+#Hide .java
+*.java
+
+#hide gitignore (makes it local)
+.gitignore
 
 !/src/*
-!p2pnetwork.iml
+p2pnetwork.iml
