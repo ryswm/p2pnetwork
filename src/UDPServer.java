@@ -7,7 +7,7 @@ public class UDPServer {
         byte[] receiveData = new byte[1024];
         byte[] sendData = new byte[1024];
 
-        DatagramSocket FirstContactSocket = new DatagramSocket(6789);
+        DatagramSocket FirstContactSocket = new DatagramSocket(20270);
 
         while(true){
         	DatagramPacket receivePacket = new DatagramPacket (receiveData,receiveData.length);

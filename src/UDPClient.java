@@ -1,4 +1,4 @@
-import com.sun.security.ntlm.Client;
+
 
 import java.io.*;
 import java.net.*;
@@ -9,7 +9,7 @@ public class UDPClient {
 
         DatagramSocket clientSocket = new DatagramSocket();
 
-        InetAddress IPAddress = InetAddress.getByName("hostname");
+        InetAddress IPAddress = InetAddress.getByName("141.117.117.48");
 
         byte[] sendData = new byte[1024];
         byte[] receiveData = new byte[1024];
@@ -18,7 +18,7 @@ public class UDPClient {
 
         sendData = sentence.getBytes();
 
-        DatagramPacket sendPacket = new DatagramPacket(sendData,sendData.length,IPAddress,9876);
+        DatagramPacket sendPacket = new DatagramPacket(sendData,sendData.length,IPAddress,20270);
 
         clientSocket.send(sendPacket);
 
