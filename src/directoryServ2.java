@@ -1,26 +1,30 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
-public class TCPServer {
+public class directoryServ2 {
+
 
     public static void main(String argv[]) throws Exception {
         String clientSentence;
-        String capSentence;
+        int servID = 2;
 
-        ServerSocket welcomeSocket = new ServerSocket(6789);
+        Hashtable<String, String> table = new Hashtable<String, String>();
 
+        //TCP Connection
+
+        ServerSocket welcomeSocket = new ServerSocket(20270);
         while(true){
             Socket connectionSocket = welcomeSocket.accept();
 
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
             clientSentence = inFromClient.readLine();
 
-            capSentence = clientSentence.toUpperCase() + '\n';
 
-            outToClient.writeBytes(capSentence);
+            outToClient.writeBytes(clientSentence);
         }
     }
+
 }
