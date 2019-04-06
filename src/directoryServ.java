@@ -1,29 +1,28 @@
-import com.sun.istack.internal.NotNull;
-
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 public class directoryServ {
 
-    public static void main(String argv[]) throws Exception {
-        int servID = 1;
+    public static void main(String[] args){
+        Scanner in = new Scanner(System.in);
+        System.out.println("Please enter the Directory Server Pool ID: ");
+        int servID = Integer.getInteger(in.nextLine());
 
 
         Hashtable<String, String> table = new Hashtable<String, String>(); //File Name, IP Address
-
-
 
         //UDP Socket
         ClientConnection cli = new ClientConnection();
         cli.id = servID;
         cli.start();
 
+
         //TCP Socket
         PoolConnection dir = new PoolConnection();
         dir.id = servID;
         dir.start();
+
     }
 }
 
@@ -38,14 +37,14 @@ class ClientConnection extends Thread {
     int id;
     String response;
 
-
     public void ClientConnection() throws Exception {
         sock = new DatagramSocket(20270);
     }
 
     public void run() {
-        try {
-            while (true) {
+
+        while (true) {
+            try {
                 DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
                 sock.receive(packet);
                 data = new String(packet.getData()); //Received Data
@@ -54,12 +53,13 @@ class ClientConnection extends Thread {
                 packet = new DatagramPacket(sendData, sendData.length, IPAddress, port); //Making response
                 sock.send(packet); //Sending Response
 
-                if(data == "init"){
+                if (data == "init") {
                     init(IPAddress);
                 }
+
+            }  catch(Exception e){
+                //System.out.println(e);
             }
-        } catch(Exception e){
-            System.out.println(e);
         }
     }
 
@@ -78,6 +78,10 @@ class ClientConnection extends Thread {
     }
 }
 
+
+
+
+
 //TCP
 class PoolConnection extends Thread {
     String data;
@@ -89,8 +93,9 @@ class PoolConnection extends Thread {
     }
 
     public void run(){
-        try{
-            while(true){
+
+        while(true){
+            try{
                 Socket connectionSocket = sock.accept();
 
                 BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -98,18 +103,21 @@ class PoolConnection extends Thread {
 
                 data = inFromClient.readLine();
                 outToClient.writeBytes("Received: " + data);
+                System.out.println("Got here TCP");
 
                 if(data == "init"){
                     data = inFromClient.readLine();
-                    init(data);
+                    //init(data, connectionSocket.getInetAddress().toString());
+                    System.out.println(data);
                 }
-            }
-        } catch(Exception e){
 
+            } catch(Exception e){
+                //System.out.println(e);
+            }
         }
     }
 
-    private String init(String ip) throws Exception {
+    private String init(String ip, String ipList) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
         Socket client = new Socket("localhost", sock.getLocalPort());
 
