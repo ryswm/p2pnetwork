@@ -6,7 +6,7 @@ import java.util.*;
 public class client {
     public static void main(String[] args) throws Exception {
         Hashtable<Integer, String>  pool = new Hashtable<>();
-        pool.put(new Integer(1),"localhost");
+        pool.put(new Integer(1),"10.17.179.115");
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
         String clientRequest;
         Server node = new Server();
@@ -36,13 +36,14 @@ class DirConnection extends Thread {
 
 
     DirConnection() throws Exception {
-        sock = new DatagramSocket();
-        address = InetAddress.getLocalHost();
+        sock = new DatagramSocket(20270);
+        address = InetAddress.getByName("10.17.179.115");
     }
 
     public void run(){
         try {
             //Send request
+            System.out.println(msg);
             buffer = msg.getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, sock.getLocalPort());
             sock.send(packet);
