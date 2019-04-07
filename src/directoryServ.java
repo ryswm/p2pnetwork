@@ -4,7 +4,7 @@ import java.util.*;
 
 public class directoryServ {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws Exception{
         Scanner in = new Scanner(System.in);
         System.out.println("Please enter the Directory Server Pool ID: ");
         int servID = Integer.getInteger(in.nextLine());
@@ -33,11 +33,11 @@ class ClientConnection extends Thread {
     byte[] receiveData = new byte[1024];
     byte[] sendData = new byte[1024];
     DatagramSocket sock;
-    String data;
+    public String data;
     int id;
     String response;
 
-    public void ClientConnection() throws Exception {
+    ClientConnection() throws Exception {
         sock = new DatagramSocket(20270);
     }
 
@@ -72,7 +72,7 @@ class ClientConnection extends Thread {
 
         outToServer.writeBytes("init" + '\n' + ip);
 
-        String modSentence = inFromServ.readLine();
+        //String modSentence = inFromServ.readLine();
 
         client.close();
     }
@@ -88,7 +88,7 @@ class PoolConnection extends Thread {
     ServerSocket sock;
     int id;
 
-    public void PoolConnection(int id) throws Exception{
+    PoolConnection() throws Exception{
         sock = new ServerSocket(20270);
     }
 

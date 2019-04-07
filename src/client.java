@@ -4,14 +4,25 @@ import java.net.*;
 import java.util.*;
 
 public class client {
-    public static void main(String[] args){
+    public static void main(String[] args) throws Exception {
         Hashtable<Integer, String>  pool = new Hashtable<>();
-        Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
         pool.put(new Integer(1),"localhost");
+        Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
+        String clientRequest;
+        Server node = new Server();
+        DirConnection connect = new DirConnection();
 
         Scanner in = new Scanner(System.in);
-        Server node = new Server();
-        
+
+
+
+        clientRequest = in.nextLine();
+        if(clientRequest == "init"){
+            connect.msg = "init";
+            connect.start();
+
+        }
+
 
     }
 }
@@ -24,7 +35,7 @@ class DirConnection extends Thread {
     InetAddress address;
 
 
-    public void DirConnection() throws Exception {
+    DirConnection() throws Exception {
         sock = new DatagramSocket();
         address = InetAddress.getLocalHost();
     }
@@ -39,6 +50,7 @@ class DirConnection extends Thread {
             packet = new DatagramPacket(buffer, buffer.length);
             sock.receive(packet);
             response = new String(packet.getData(), 0, packet.getLength());
+            sock.close();
 
         } catch (Exception e){
             System.out.println(e);
@@ -51,7 +63,7 @@ class Server extends Thread {
     ServerSocket sock;
     String data;
 
-    public void Server(int id) throws Exception{
+    Server() throws Exception{
         sock = new ServerSocket(20270);
     }
 
