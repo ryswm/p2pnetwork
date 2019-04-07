@@ -116,7 +116,7 @@ class PoolConnection extends Thread {
                 DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
                 data = inFromClient.readLine();
-                System.out.println(data);
+                System.out.println(data + " " + id);
 
                 if(data.equals("init") && id.equals("1")) {
                     data = inFromClient.readLine();
@@ -132,7 +132,7 @@ class PoolConnection extends Thread {
         }
     }
 
-    private String init(String ip, String ipList) throws Exception {
+    private void init(String ip, String ipList) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
         Socket client = new Socket(nextIP, 20270);
 
@@ -141,12 +141,12 @@ class PoolConnection extends Thread {
 
         outToServer.writeBytes("init" + '\n' + ip + '\n' + ipList);
 
-        String modSentence = inFromServ.readLine();
+        //String modSentence = inFromServ.readLine();
         client.close();
 
         System.out.println("Sent through circle");
 
-        return modSentence;
+        //return modSentence;
     }
 
     private void clientInit(String ip, String ipList) throws Exception{
