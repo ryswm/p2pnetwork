@@ -9,7 +9,7 @@ public class client {
         pool.put(new Integer(1),"10.17.179.115");
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
         String clientRequest;
-        Server node = new Server();
+        //Server node = new Server();
         DirConnection connect = new DirConnection();
 
         Scanner in = new Scanner(System.in);
@@ -17,7 +17,7 @@ public class client {
 
 
         clientRequest = in.nextLine();
-        if(clientRequest == "init"){
+        if(clientRequest.equals("init")){
             connect.msg = "init";
             connect.start();
 
@@ -36,17 +36,17 @@ class DirConnection extends Thread {
 
 
     DirConnection() throws Exception {
-        sock = new DatagramSocket(20270);
-        address = InetAddress.getByName("10.17.179.115");
+        sock = new DatagramSocket(20273);
+        address = InetAddress.getByName("10.17.125.67");
     }
 
     public void run(){
         try {
             //Send request
-            System.out.println(msg);
             buffer = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, sock.getLocalPort());
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 20270);
             sock.send(packet);
+            System.out.println("Packet Sent");
 
             packet = new DatagramPacket(buffer, buffer.length);
             sock.receive(packet);
@@ -65,7 +65,7 @@ class Server extends Thread {
     String data;
 
     Server() throws Exception{
-        sock = new ServerSocket(20270);
+        sock = new ServerSocket(20275);
     }
 
     public void run(){

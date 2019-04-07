@@ -17,12 +17,10 @@ public class directoryServ {
         cli.id = servID;
         cli.start();
 
-
         //TCP Socket
         PoolConnection dir = new PoolConnection();
         dir.id = servID;
         dir.start();
-
     }
 }
 
@@ -36,29 +34,33 @@ class ClientConnection extends Thread {
     public String data;
     String id;
     String response;
+    boolean running;
 
     ClientConnection() throws Exception {
         sock = new DatagramSocket(20270);
     }
 
     public void run() {
-
-        while (true) {
+        running = true;
+        while (running) {
             try {
                 DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
                 sock.receive(packet);
-                data = new String(packet.getData()); //Received Data
+
+                data = new String(packet.getData(), 0, packet.getLength()); //Received Data
                 InetAddress IPAddress = packet.getAddress(); //Getting client ip and socket
                 int port = packet.getPort();
                 packet = new DatagramPacket(sendData, sendData.length, IPAddress, port); //Making response
                 sock.send(packet); //Sending Response
 
-                if (data == "init") {
+
+                if (data.equals("init")) {
+                    System.out.println("Hello");
                     init(IPAddress);
                 }
 
             }  catch(Exception e){
-                //System.out.println(e);
+                System.out.println(e);
             }
         }
     }
@@ -74,6 +76,7 @@ class ClientConnection extends Thread {
 
         //String modSentence = inFromServ.readLine();
 
+        System.out.println("Trying to connect to dirServer 2");
         client.close();
     }
 }
@@ -89,7 +92,7 @@ class PoolConnection extends Thread {
     String id;
 
     PoolConnection() throws Exception{
-        sock = new ServerSocket(20270);
+        sock = new ServerSocket(20269);
     }
 
     public void run(){
