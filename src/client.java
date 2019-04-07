@@ -6,11 +6,11 @@ import java.util.*;
 public class client {
     public static void main(String[] args) throws Exception {
         Hashtable<Integer, String>  pool = new Hashtable<>();
-
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
         String clientRequest;
-        //Server node = new Server();
-        DirConnection connect = new DirConnection();
+
+        //Server node = new Server(); //Socket to wait for connection from other client
+        DirConnection connect = new DirConnection(); //Socket to make connections with dirServer pool on request
 
         Scanner in = new Scanner(System.in);
         //System.out.println("Please enter the IP of the first dirServer in pool: ");
@@ -22,12 +22,11 @@ public class client {
         if(clientRequest.equals("init")){
             connect.msg = "init";
             connect.start();
+            if(!connect.response.equals(null)){
+                connect.sock.close();
+            }
 
         }
-
-
-
-
 
     }
 }
@@ -38,25 +37,27 @@ class DirConnection extends Thread {
     String response;
     private byte[] buffer;
     InetAddress address;
+    int port;
 
 
     DirConnection() throws Exception {
         sock = new DatagramSocket();
-        address = InetAddress.getByName("10.17.125.67");
+        address = InetAddress.getLocalHost();
+        port = 100;
     }
 
     public void run(){
         try {
             //Send request
             buffer = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 20270);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
             sock.send(packet);
             System.out.println("Packet Sent");
 
             packet = new DatagramPacket(buffer, buffer.length);
             sock.receive(packet);
             response = new String(packet.getData(), 0, packet.getLength());
-            //sock.close();
+            sock.close();
 
 
 

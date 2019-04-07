@@ -5,25 +5,33 @@ import java.util.*;
 public class directoryServ {
 
     public static void main(String[] args) throws Exception{
+        //Server Setup
         Scanner in = new Scanner(System.in);
         System.out.println("Please enter the Directory Server Pool ID: ");
         String servID = in.nextLine();
-        System.out.println("Please enter the IP of the next server in pool: ");
+        System.out.println("Please enter the desired port number for this server: ");
+        String setPort = in.nextLine();
+        System.out.println("Please enter the IP of the next server in pool (localhost for same device): ");
         String nextIP = in.nextLine();
+        System.out.println("Please enter the desired port number for the next dirServer in pool: ");
+        String nextPort = in.nextLine();
 
 
+        //Hashtable for this directory server
         Hashtable<String, String> table = new Hashtable<String, String>(); //File Name, IP Address
 
         //UDP Socket
-        ClientConnection cli = new ClientConnection();
+        ClientConnection cli = new ClientConnection(Integer.parseInt(setPort));
         cli.id = servID;
         cli.nextIP = nextIP;
+        cli.nextPort = Integer.parseInt(nextPort);
         cli.start();
 
         //TCP Socket
-        PoolConnection dir = new PoolConnection();
+        PoolConnection dir = new PoolConnection(Integer.parseInt(setPort));
         dir.id = servID;
         dir.nextIP = nextIP;
+        dir.nextPort = Integer.parseInt(nextPort);
         dir.start();
     }
 }
@@ -32,62 +40,61 @@ public class directoryServ {
 
 //UDP
 class ClientConnection extends Thread {
-    String nextIP;
-
-    byte[] receiveData = new byte[1024];
-    byte[] sendData = new byte[1024];
-    DatagramSocket sock;
-    public String data;
     String id;
+    int port;
+    String nextIP;
+    int nextPort;
 
-    String ipList;
+    private byte[] bData = new byte[1024];
+
+    private DatagramSocket sock;
+    String data;
+
 
     boolean running;
 
-    ClientConnection() throws Exception {
-        sock = new DatagramSocket(20270);
+    ClientConnection(int port) throws Exception {
+        sock = new DatagramSocket(port);
+        this.port = port;
     }
 
     public void run() {
         running = true;
         while (running) {
             try {
-                DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                DatagramPacket packet = new DatagramPacket(bData, bData.length);
                 sock.receive(packet);
 
                 data = new String(packet.getData(), 0, packet.getLength()); //Received Data
                 InetAddress IPAddress = packet.getAddress(); //Getting client ip and socket
                 int port = packet.getPort();
 
-                packet = new DatagramPacket(sendData, sendData.length, IPAddress, port); //Making response
+                System.out.println(port);
+
+                packet = new DatagramPacket(bData, bData.length, IPAddress, port); //Making response
                 sock.send(packet); //Sending Response
 
                 if (data.equals("init")) {
                     System.out.println("Hello");
-                    init(IPAddress, port);
+                    init(IPAddress, port, IPAddress);
                 }
 
-
-
             }  catch(Exception e){
-                System.out.println(e);
+                System.out.println("Exception UDP Server");
             }
         }
     }
 
-    private void init(InetAddress ip, int port) throws Exception {
-        ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket(nextIP, 20270);
+    private void init(InetAddress ip, int portm, InetAddress first) throws Exception {
+        Socket client = new Socket(nextIP, nextPort);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
-        BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + first);
 
-        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port);
-
-        //String modSentence = inFromServ.readLine();
-
-        System.out.println("Trying to connect to dirServer 2");
+        outToServer.close();
         client.close();
+
+        System.out.println("Trying to connect to 2nd dirServer in pool");
     }
 }
 
@@ -97,66 +104,73 @@ class ClientConnection extends Thread {
 
 //TCP
 class PoolConnection extends Thread {
-    String data;
-    ServerSocket sock;
-    String id;
-    String nextIP;
+    String data; //Message received from other server
 
-    PoolConnection() throws Exception{
-        sock = new ServerSocket(20270);
+    ServerSocket sock; //Socket for communication
+    String id; //ID of server
+    int port;
+    String nextIP; //IP of next server
+    int nextPort;
+
+    boolean running;
+
+    PoolConnection(int port) throws Exception{
+        sock = new ServerSocket(port);
+        this.port = port;
     }
 
     public void run(){
-
-        while(true){
+        running = true;
+        while(running){
             try{
                 Socket connectionSocket = sock.accept();
 
                 BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
                 DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
-                data = inFromClient.readLine();
-                System.out.println(data + " " + id);
-
+                data = inFromClient.readLine(); //Request from other dirServer in pool
                 if(data.equals("init") && id.equals("1")) {
                     data = inFromClient.readLine();
                     clientInit(data, inFromClient.readLine());
-                }else if(data.equals("init")){
+                } else if(data.equals("init")){
                     data = inFromClient.readLine();
                     init(data, inFromClient.readLine() + ' ' + connectionSocket.getInetAddress().toString());
                 }
 
+                inFromClient.close();
             } catch(Exception e){
-                //System.out.println(e);
+                System.out.println("Exception TCP Server");
             }
         }
     }
 
     private void init(String ip, String ipList) throws Exception {
-        ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket(nextIP, 20270);
+        Socket dest = new Socket(nextIP, nextPort);
 
-        DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
-        BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
+        DataOutputStream outToServer = new DataOutputStream(dest.getOutputStream());
         outToServer.writeBytes("init" + '\n' + ip + '\n' + ipList);
 
-        //String modSentence = inFromServ.readLine();
-        client.close();
+        outToServer.close();
+        dest.close();
 
         System.out.println("Sent through circle");
-
-        //return modSentence;
     }
 
     private void clientInit(String ip, String ipList) throws Exception{
         String[] info = ip.split(":", 2);
+        String[] fix = info[0].split("/", 2);
+
+        byte[] bData = ipList.getBytes();
+
 
         DatagramSocket temp = new DatagramSocket(9999);
-        DatagramPacket packet = new DatagramPacket(ipList.getBytes(), ipList.getBytes().length, InetAddress.getByAddress(info[1].getBytes()), Integer.parseInt(info[2])); //Making response
-        temp.send(packet); //Sending Response
+        System.out.println("Made socket");
+        DatagramPacket pack = new DatagramPacket(bData, bData.length, InetAddress.getByAddress(fix[1].getBytes()), Integer.parseInt(info[1])); //Making response
+        System.out.println("Made Packet");
+        temp.send(pack); //Sending Response
+        temp.close(); //Closing temp UDP socket
 
-        System.out.println("Got to end");
+        System.out.println("Got to end, trying to send back to client");
     }
 
 }
