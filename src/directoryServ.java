@@ -144,6 +144,8 @@ class PoolConnection extends Thread {
         String modSentence = inFromServ.readLine();
         client.close();
 
+        System.out.println("Sent through circle");
+
         return modSentence;
     }
 
@@ -153,6 +155,8 @@ class PoolConnection extends Thread {
         DatagramSocket temp = new DatagramSocket(9999);
         DatagramPacket packet = new DatagramPacket(ipList.getBytes(), ipList.getBytes().length, InetAddress.getByAddress(info[1].getBytes()), Integer.parseInt(info[2])); //Making response
         temp.send(packet); //Sending Response
+
+        System.out.println("Got to end");
     }
 
 }

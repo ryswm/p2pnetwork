@@ -26,6 +26,9 @@ public class client {
         }
 
 
+
+
+
     }
 }
 
@@ -53,7 +56,9 @@ class DirConnection extends Thread {
             packet = new DatagramPacket(buffer, buffer.length);
             sock.receive(packet);
             response = new String(packet.getData(), 0, packet.getLength());
-            sock.close();
+            //sock.close();
+
+
 
         } catch (Exception e){
             System.out.println(e);
