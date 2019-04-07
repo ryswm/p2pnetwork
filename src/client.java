@@ -39,7 +39,7 @@ class DirConnection extends Thread {
 
     DirConnection() throws Exception {
         sock = new DatagramSocket();
-        address = InetAddress.getByName("10.17.125.67");
+        address = InetAddress.getByName("141.117.232.36");
     }
 
     public void run(){

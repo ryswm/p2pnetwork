@@ -134,7 +134,7 @@ class PoolConnection extends Thread {
 
     private String init(String ip, String ipList) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket(nextIP, 20270);
+        Socket client = new Socket(nextIP, sock.getLocalPort());
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
