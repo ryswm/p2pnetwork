@@ -7,7 +7,7 @@ public class directoryServ {
     public static void main(String[] args) throws Exception{
         Scanner in = new Scanner(System.in);
         System.out.println("Please enter the Directory Server Pool ID: ");
-        int servID = Integer.getInteger(in.nextLine());
+        String servID = in.nextLine();
 
 
         Hashtable<String, String> table = new Hashtable<String, String>(); //File Name, IP Address
@@ -34,7 +34,7 @@ class ClientConnection extends Thread {
     byte[] sendData = new byte[1024];
     DatagramSocket sock;
     public String data;
-    int id;
+    String id;
     String response;
 
     ClientConnection() throws Exception {
@@ -86,7 +86,7 @@ class ClientConnection extends Thread {
 class PoolConnection extends Thread {
     String data;
     ServerSocket sock;
-    int id;
+    String id;
 
     PoolConnection() throws Exception{
         sock = new ServerSocket(20270);
