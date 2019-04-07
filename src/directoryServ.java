@@ -82,7 +82,7 @@ class ClientConnection extends Thread {
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-        outToServer.writeBytes("init" + '\n' + ip + ':' + port);
+        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port);
 
         //String modSentence = inFromServ.readLine();
 
