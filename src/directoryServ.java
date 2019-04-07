@@ -8,6 +8,8 @@ public class directoryServ {
         Scanner in = new Scanner(System.in);
         System.out.println("Please enter the Directory Server Pool ID: ");
         String servID = in.nextLine();
+        System.out.println("Please enter the IP of the next server in pool: ");
+        String nextIP = in.nextLine();
 
 
         Hashtable<String, String> table = new Hashtable<String, String>(); //File Name, IP Address
@@ -15,11 +17,13 @@ public class directoryServ {
         //UDP Socket
         ClientConnection cli = new ClientConnection();
         cli.id = servID;
+        cli.nextIP = nextIP;
         cli.start();
 
         //TCP Socket
         PoolConnection dir = new PoolConnection();
         dir.id = servID;
+        dir.nextIP = nextIP;
         dir.start();
     }
 }
@@ -28,12 +32,15 @@ public class directoryServ {
 
 //UDP
 class ClientConnection extends Thread {
+    String nextIP;
+
     byte[] receiveData = new byte[1024];
     byte[] sendData = new byte[1024];
     DatagramSocket sock;
     public String data;
     String id;
     String response;
+
     boolean running;
 
     ClientConnection() throws Exception {
@@ -67,7 +74,7 @@ class ClientConnection extends Thread {
 
     private void init(InetAddress ip) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket("localhost", sock.getLocalPort());
+        Socket client = new Socket(nextIP, 20270);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -90,9 +97,10 @@ class PoolConnection extends Thread {
     String data;
     ServerSocket sock;
     String id;
+    String nextIP;
 
     PoolConnection() throws Exception{
-        sock = new ServerSocket(20269);
+        sock = new ServerSocket(20270);
     }
 
     public void run(){
@@ -122,7 +130,7 @@ class PoolConnection extends Thread {
 
     private String init(String ip, String ipList) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket("localhost", sock.getLocalPort());
+        Socket client = new Socket(nextIP, sock.getLocalPort());
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
