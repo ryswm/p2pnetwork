@@ -116,7 +116,7 @@ class PoolConnection extends Thread {
                 DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
                 data = inFromClient.readLine();
-                outToClient.writeBytes("Received: " + data);
+                System.out.println(data);
 
                 if(data.equals("init") && id.equals("1")) {
                     data = inFromClient.readLine();
