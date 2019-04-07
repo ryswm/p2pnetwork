@@ -76,8 +76,8 @@ class ClientConnection extends Thread {
     }
 
     private void init(InetAddress ip, int port) throws Exception {
-        ServerSocket sock = new ServerSocket(20270);
-        Socket client = new Socket(nextIP, sock.getLocalPort());
+        ServerSocket sock = new ServerSocket(20271);
+        Socket client = new Socket(nextIP, 20270);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -133,8 +133,8 @@ class PoolConnection extends Thread {
     }
 
     private String init(String ip, String ipList) throws Exception {
-        ServerSocket sock = new ServerSocket(20270);
-        Socket client = new Socket(nextIP, sock.getLocalPort());
+        ServerSocket sock = new ServerSocket(20271);
+        Socket client = new Socket(nextIP, 20270);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
