@@ -39,7 +39,8 @@ class ClientConnection extends Thread {
     DatagramSocket sock;
     public String data;
     String id;
-    String response;
+
+    String ipList;
 
     boolean running;
 
@@ -57,14 +58,16 @@ class ClientConnection extends Thread {
                 data = new String(packet.getData(), 0, packet.getLength()); //Received Data
                 InetAddress IPAddress = packet.getAddress(); //Getting client ip and socket
                 int port = packet.getPort();
+
                 packet = new DatagramPacket(sendData, sendData.length, IPAddress, port); //Making response
                 sock.send(packet); //Sending Response
 
-
                 if (data.equals("init")) {
                     System.out.println("Hello");
-                    init(IPAddress);
+                    init(IPAddress, port);
                 }
+
+
 
             }  catch(Exception e){
                 System.out.println(e);
@@ -72,14 +75,14 @@ class ClientConnection extends Thread {
         }
     }
 
-    private void init(InetAddress ip) throws Exception {
+    private void init(InetAddress ip, int port) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
         Socket client = new Socket(nextIP, 20270);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-        outToServer.writeBytes("init" + '\n' + ip);
+        outToServer.writeBytes("init" + '\n' + ip + ':' + port);
 
         //String modSentence = inFromServ.readLine();
 
@@ -114,12 +117,13 @@ class PoolConnection extends Thread {
 
                 data = inFromClient.readLine();
                 outToClient.writeBytes("Received: " + data);
-                System.out.println("Got here TCP");
 
-                if(data == "init"){
+                if(data.equals("init") && id.equals("1")) {
                     data = inFromClient.readLine();
-                    //init(data, connectionSocket.getInetAddress().toString());
-                    System.out.println(data);
+                    clientInit(data, inFromClient.readLine());
+                }else if(data.equals("init")){
+                    data = inFromClient.readLine();
+                    init(data, inFromClient.readLine() + ' ' + connectionSocket.getInetAddress().toString());
                 }
 
             } catch(Exception e){
@@ -130,17 +134,25 @@ class PoolConnection extends Thread {
 
     private String init(String ip, String ipList) throws Exception {
         ServerSocket sock = new ServerSocket(20271);
-        Socket client = new Socket(nextIP, sock.getLocalPort());
+        Socket client = new Socket(nextIP, 20270);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
         BufferedReader inFromServ = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-        outToServer.writeBytes("init" + '\n');
+        outToServer.writeBytes("init" + '\n' + ip + '\n' + ipList);
 
         String modSentence = inFromServ.readLine();
         client.close();
 
         return modSentence;
+    }
+
+    private void clientInit(String ip, String ipList) throws Exception{
+        String[] info = ip.split(":", 2);
+
+        DatagramSocket temp = new DatagramSocket(9999);
+        DatagramPacket packet = new DatagramPacket(ipList.getBytes(), ipList.getBytes().length, InetAddress.getByAddress(info[1].getBytes()), Integer.parseInt(info[2])); //Making response
+        temp.send(packet); //Sending Response
     }
 
 }

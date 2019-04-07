@@ -6,14 +6,16 @@ import java.util.*;
 public class client {
     public static void main(String[] args) throws Exception {
         Hashtable<Integer, String>  pool = new Hashtable<>();
-        pool.put(new Integer(1),"10.17.179.115");
+
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
         String clientRequest;
         //Server node = new Server();
         DirConnection connect = new DirConnection();
 
         Scanner in = new Scanner(System.in);
-
+        //System.out.println("Please enter the IP of the first dirServer in pool: ");
+        //String dest = in.nextLine();
+        //pool.put(new Integer(1),dest);
 
 
         clientRequest = in.nextLine();
@@ -36,7 +38,7 @@ class DirConnection extends Thread {
 
 
     DirConnection() throws Exception {
-        sock = new DatagramSocket(20273);
+        sock = new DatagramSocket();
         address = InetAddress.getByName("10.17.125.67");
     }
 
