@@ -39,48 +39,19 @@ public class client {
             packet = new DatagramPacket(responseBuf, responseBuf.length);
             sock.receive(packet);
             response = new String(packet.getData(), 0, packet.getLength());
-            sock.close();
-            System.out.println(response);
+            sock.close(); //Closing socket
+
+            //Splitting response from server pool and adding to pool hashtable
+            String[] temp = response.split(" ", 4);
+            for(int i = 0; i < 4; i++){
+                pool.put(i + 1, temp[i]);
+            }
         }
 
 
-
-    }
-}
-
-//Kept if needed but not used
-class DirConnection extends Thread {
-    DatagramSocket sock;
-     String msg;
-    String response;
-    private byte[] buffer;
-    InetAddress address;
-    int port;
-
-
-    DirConnection() throws Exception {
-        sock = new DatagramSocket();
-        address = InetAddress.getLocalHost();
-        port = 100;
-    }
-
-    public void run(){
-        try {
-            //Send request
-            buffer = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
-            sock.send(packet);
-            System.out.println("Packet Sent");
-
-            packet = new DatagramPacket(buffer, buffer.length);
-            sock.receive(packet);
-            response = new String(packet.getData(), 0, packet.getLength());
-            sock.close();
-
-
-
-        } catch (Exception e){
-            System.out.println(e);
+        //debugging purposes
+        for(int i = 0; i < 4; i++){
+            System.out.println(pool.get(i + 1));
         }
 
     }
