@@ -69,11 +69,6 @@ class ClientConnection extends Thread {
                 InetAddress IPAddress = packet.getAddress(); //Getting client ip and socket
                 int port = packet.getPort();
 
-                System.out.println(port);
-
-                packet = new DatagramPacket(bData, bData.length, IPAddress, port); //Making response
-                sock.send(packet); //Sending Response
-
                 if (data.equals("init")) {
                     System.out.println("Hello");
                     init(IPAddress, port, IPAddress);
@@ -85,7 +80,7 @@ class ClientConnection extends Thread {
         }
     }
 
-    private void init(InetAddress ip, int portm, InetAddress first) throws Exception {
+    private void init(InetAddress ip, int port, InetAddress first) throws Exception {
         Socket client = new Socket(nextIP, nextPort);
 
         DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
@@ -162,6 +157,7 @@ class PoolConnection extends Thread {
 
         byte[] bData = ipList.getBytes();
 
+        System.out.println(info[1]);
 
         DatagramSocket temp = new DatagramSocket(9999);
         System.out.println("Made socket");

@@ -5,32 +5,47 @@ import java.util.*;
 
 public class client {
     public static void main(String[] args) throws Exception {
+        //Hashtables
         Hashtable<Integer, String>  pool = new Hashtable<>();
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
+
+        //Client request
         String clientRequest;
 
-        //Server node = new Server(); //Socket to wait for connection from other client
-        DirConnection connect = new DirConnection(); //Socket to make connections with dirServer pool on request
+        //For UDP connections
+        byte[] buffer;
+        InetAddress address;
+        int port;
 
+        //Response from UDP connection
+        String response;
+
+
+        //Setting up UDP socket and user input
+        DatagramSocket sock = new DatagramSocket(20270, InetAddress.getLocalHost());
+        DatagramPacket packet;
         Scanner in = new Scanner(System.in);
-        //System.out.println("Please enter the IP of the first dirServer in pool: ");
-        //String dest = in.nextLine();
-        //pool.put(new Integer(1),dest);
 
 
+        //Possible actions for client
         clientRequest = in.nextLine();
-        if(clientRequest.equals("init")){
-            connect.msg = "init";
-            connect.start();
-            if(!connect.response.equals(null)){
-                connect.sock.close();
-            }
+        if(clientRequest.equals("init")){ // INIT command, makes new udp connection and waits for a response on same socket
+            buffer = clientRequest.getBytes();
+            packet = new DatagramPacket(buffer, buffer.length,InetAddress.getLocalHost(),100);
+            sock.send(packet);
 
+            packet = new DatagramPacket(buffer, buffer.length);
+            sock.receive(packet);
+            response = new String(packet.getData(), 0, packet.getLength());
+            //System.out.println(response);
         }
+
+
 
     }
 }
 
+//Kept if needed but not used
 class DirConnection extends Thread {
     DatagramSocket sock;
      String msg;
@@ -68,6 +83,7 @@ class DirConnection extends Thread {
     }
 }
 
+//For acting as server, not used yet
 class Server extends Thread {
     ServerSocket sock;
     String data;
