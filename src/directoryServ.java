@@ -51,11 +51,9 @@ class ClientConnection extends Thread {
     private DatagramSocket sock;
     String data; //received data
 
-
     //Hashtable for this directory server
     //File Name, IP Address
     Hashtable<String, String> table = new Hashtable<String, String>();
-
 
     boolean running;
 
@@ -80,8 +78,11 @@ class ClientConnection extends Thread {
                 }else if(data.equals("inform")){
                     sock.receive(packet);
                     data = new String(packet.getData(),0,packet.getLength());
-                    System.out.println(data);
                     addRecord(data);
+                } else if(data.equals("query")){
+                    sock.receive(packet);
+                    data = new String(packet.getData(),0,packet.getLength());
+                    query(data, IPAddress, port);
                 }
 
             }  catch(Exception e){
@@ -90,7 +91,7 @@ class ClientConnection extends Thread {
         }
     }
 
-    //Handles "init" command for server in pool with ID = 1
+    //Handles "init" command for server in pool with ID = 1, transforms UDP connection with client into TCP connection with dirServer pool
     private void init(InetAddress ip, int port) throws Exception {
         Socket connection = new Socket(nextIP, nextPort);
 
@@ -106,12 +107,27 @@ class ClientConnection extends Thread {
     //Adds new file and location record to this server, initiated by receiving "inform" command
     private void addRecord(String data){
         //Extracting record
-        String[] info = data.split(":", 2);
-        String[] ip = info[1].split("/", 2);
+        String[] info = data.split(":", 2); //Stored as contentName:/IP
+        String[] ip = info[1].split("/", 2); //Taking / off IP
 
         //Adding to hashtable and displaying to server console
         table.put(info[0], ip[1]);
         System.out.println("Added new record to server: <" + info[0] + ", " + ip[1] + ">");
+    }
+
+    //Query Function to respond upon file query, initiated by query command from client
+    private void query(String data, InetAddress ip, int port) throws Exception {
+        byte[] msg;
+        DatagramPacket queryMsg;
+        if(table.containsKey(data)){
+            msg = table.get(data).getBytes();
+            queryMsg = new DatagramPacket(msg, msg.length, ip, port);
+            sock.send(queryMsg);
+        }else{
+            msg = "404".getBytes();
+            queryMsg = new DatagramPacket(msg, msg.length, ip, port);
+            sock.send(queryMsg);
+        }
     }
 }
 
@@ -145,10 +161,11 @@ class PoolConnection extends Thread {
                 DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
                 data = inFromClient.readLine(); //Request from other dirServer in pool
-                if(data.equals("init") && id.equals("1")) {
+
+                if(data.equals("init") && id.equals("1")) { //Server 1 only; Sends over UDP to client
                     data = inFromClient.readLine();
                     clientInit(data, inFromClient.readLine());
-                } else if(data.equals("init")){
+                } else if(data.equals("init")){ //Continues sending through pool over TCP
                     data = inFromClient.readLine();
                     init(data, inFromClient.readLine() + ' ' + connectionSocket.getInetAddress().toString() + '#' + connectionSocket.getLocalPort());
                 }
@@ -160,6 +177,7 @@ class PoolConnection extends Thread {
         }
     }
 
+    //Init function for dirServers 2-4
     private void init(String ip, String ipList) throws Exception {
         Socket dest = new Socket(nextIP, nextPort);
 
@@ -172,6 +190,7 @@ class PoolConnection extends Thread {
         System.out.println("Sent through circle");
     }
 
+    //Sends init response of entire dirServer pool back to client
     private void clientInit(String ip, String ipList) throws Exception{
         String[] info = ip.split(":", 2); //Splitting IP and port of client response will be sent to
         String[] fix = info[0].split("/", 2); //Taking / character off IP to convert to InetAddress
