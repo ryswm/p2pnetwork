@@ -15,10 +15,11 @@ public class directoryServ {
         String nextIP = in.nextLine();
         System.out.println("Please enter the desired port number for the next dirServer in pool: ");
         String nextPort = in.nextLine();
+        System.out.println("Setup complete, server #" + servID + " is in standby and awaiting connection");
+        System.out.println("-------------------------------------------------------------------------------");
 
 
-        //Hashtable for this directory server
-        Hashtable<String, String> table = new Hashtable<String, String>(); //File Name, IP Address
+
 
         //UDP Socket
         ClientConnection cli = new ClientConnection(Integer.parseInt(setPort));
@@ -40,15 +41,20 @@ public class directoryServ {
 
 //UDP
 class ClientConnection extends Thread {
-    String id;
-    int port;
-    String nextIP;
-    int nextPort;
+    String id; //Server ID
+    int port; //Server port
+    String nextIP; //next IP in pool
+    int nextPort; //Next port in pool
 
     private byte[] bData = new byte[1024];
 
     private DatagramSocket sock;
-    String data;
+    String data; //received data
+
+
+    //Hashtable for this directory server
+    //File Name, IP Address
+    Hashtable<String, String> table = new Hashtable<String, String>();
 
 
     boolean running;
@@ -70,8 +76,12 @@ class ClientConnection extends Thread {
                 int port = packet.getPort();
 
                 if (data.equals("init")) {
-                    System.out.println("Hello");
-                    init(IPAddress, port, IPAddress);
+                    init(IPAddress, port);
+                }else if(data.equals("inform")){
+                    sock.receive(packet);
+                    data = new String(packet.getData(),0,packet.getLength());
+                    System.out.println(data);
+                    addRecord(data);
                 }
 
             }  catch(Exception e){
@@ -80,19 +90,30 @@ class ClientConnection extends Thread {
         }
     }
 
-    private void init(InetAddress ip, int port, InetAddress first) throws Exception {
-        Socket client = new Socket(nextIP, nextPort);
+    //Handles "init" command for server in pool with ID = 1
+    private void init(InetAddress ip, int port) throws Exception {
+        Socket connection = new Socket(nextIP, nextPort);
 
-        DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
-        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + first);
+        DataOutputStream outToServer = new DataOutputStream(connection.getOutputStream());
+        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + ip.toString() + "#" + this.port); //init\n clientIP:clientPort\n dirServIP#dirServPort
 
-        outToServer.close();
-        client.close();
+        outToServer.close(); //Closing outward stream
+        connection.close(); //Closing connection
 
         System.out.println("Trying to connect to 2nd dirServer in pool");
     }
-}
 
+    //Adds new file and location record to this server, initiated by receiving "inform" command
+    private void addRecord(String data){
+        //Extracting record
+        String[] info = data.split(":", 2);
+        String[] ip = info[1].split("/", 2);
+
+        //Adding to hashtable and displaying to server console
+        table.put(info[0], ip[1]);
+        System.out.println("Added new record to server: <" + info[0] + ", " + ip[1] + ">");
+    }
+}
 
 
 
@@ -129,7 +150,7 @@ class PoolConnection extends Thread {
                     clientInit(data, inFromClient.readLine());
                 } else if(data.equals("init")){
                     data = inFromClient.readLine();
-                    init(data, inFromClient.readLine() + ' ' + connectionSocket.getInetAddress().toString());
+                    init(data, inFromClient.readLine() + ' ' + connectionSocket.getInetAddress().toString() + '#' + connectionSocket.getLocalPort());
                 }
 
                 inFromClient.close();
@@ -152,12 +173,14 @@ class PoolConnection extends Thread {
     }
 
     private void clientInit(String ip, String ipList) throws Exception{
-        String[] info = ip.split(":", 2);
-        String[] fix = info[0].split("/", 2);
+        String[] info = ip.split(":", 2); //Splitting IP and port of client response will be sent to
+        String[] fix = info[0].split("/", 2); //Taking / character off IP to convert to InetAddress
+        InetAddress add = InetAddress.getByName(fix[1]); //Converting string IP to InetAddress
 
-        byte[] bData = ipList.getBytes();
-        InetAddress add = InetAddress.getByName(fix[1]);
+        byte[] bData = ipList.getBytes(); //Converting string of IPs to bytes for transmission
 
+
+        //Sending packet back to client
         DatagramSocket temp = new DatagramSocket(9999);
         DatagramPacket pack = new DatagramPacket(bData, bData.length, add, Integer.parseInt(info[1])); //Making response
         temp.send(pack); //Sending Response

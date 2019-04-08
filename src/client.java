@@ -5,6 +5,8 @@ import java.util.*;
 
 public class client {
     public static void main(String[] args) throws Exception {
+        boolean running = true;
+
         //Hashtables
         Hashtable<Integer, String>  pool = new Hashtable<>();
         Hashtable<String, Hashtable<Integer, String>> records = new Hashtable<String, Hashtable<Integer, String>>();
@@ -24,34 +26,64 @@ public class client {
 
         //Setting up UDP socket and user input
         DatagramPacket packet;
-        DatagramSocket sock = new DatagramSocket(20270, InetAddress.getLocalHost());
+        DatagramSocket sock;
+
         Scanner in = new Scanner(System.in);
 
 
-        //Possible actions for client
-        clientRequest = in.nextLine();
-        if(clientRequest.equals("init")){ // INIT command, makes new udp connection and waits for a response on same socket
-            buffer = clientRequest.getBytes();
-            packet = new DatagramPacket(buffer, buffer.length,InetAddress.getLocalHost(),100);
-            sock.send(packet);
 
-            //Waiting for response
-            packet = new DatagramPacket(responseBuf, responseBuf.length);
-            sock.receive(packet);
-            response = new String(packet.getData(), 0, packet.getLength());
-            sock.close(); //Closing socket
+        while(running) {
+             sock = new DatagramSocket(20270, InetAddress.getLocalHost());
+            //Possible actions for client
+            clientRequest = in.nextLine();
+            if (clientRequest.equals("init")) { // INIT command, makes new udp connection and waits for a response on same socket
+                buffer = clientRequest.getBytes();
+                packet = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), 100);
+                sock.send(packet);
 
-            //Splitting response from server pool and adding to pool hashtable
-            String[] temp = response.split(" ", 4);
-            for(int i = 0; i < 4; i++){
-                pool.put(i + 1, temp[i]);
+                //Waiting for response
+                packet = new DatagramPacket(responseBuf, responseBuf.length);
+                sock.receive(packet);
+                response = new String(packet.getData(), 0, packet.getLength());
+                sock.close(); //Closing socket
+
+                //Splitting response from server pool and adding to pool hashtable
+                String[] temp = response.split(" ", 4);
+                for (int i = 0; i < 4; i++) {
+                    pool.put(i + 1, temp[i]);
+                    System.out.println(pool.get(i + 1));
+                }
+            } else if(clientRequest.equals("inform")) {
+                System.out.println("Please enter the file for which to upload: ");
+                String fileName = in.nextLine();
+
+                //Hashing filename
+                int key = fileName.hashCode();
+                key = (key % 4) + 1;
+
+                //Extracting info for transmission
+                String[] info = pool.get(key).split("#", 2);
+                String[] ip = info[0].split("/", 2);
+
+                //Sending inform message
+                buffer = clientRequest.getBytes();
+                packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
+                sock.send(packet);
+
+                //Sending filename
+                byte[] tempBuf = (fileName + ":" + InetAddress.getLocalHost().toString()).getBytes();
+                packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
+                sock.send(packet);
+
+                sock.close(); //Closing socket
+
+            }else if(clientRequest.equals("query")){
+
+
+            }else if (clientRequest.equals("exit")){
+                running = false;
             }
-        }
 
-
-        //debugging purposes
-        for(int i = 0; i < 4; i++){
-            System.out.println(pool.get(i + 1));
         }
 
     }
