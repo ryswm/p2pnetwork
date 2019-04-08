@@ -156,16 +156,14 @@ class PoolConnection extends Thread {
         String[] fix = info[0].split("/", 2);
 
         byte[] bData = ipList.getBytes();
-
-        System.out.println(info[1]);
+        InetAddress add = InetAddress.getByName(fix[1]);
 
         DatagramSocket temp = new DatagramSocket(9999);
-        System.out.println("Made socket");
-        DatagramPacket pack = new DatagramPacket(bData, bData.length, InetAddress.getByAddress(fix[1].getBytes()), Integer.parseInt(info[1])); //Making response
-        System.out.println("Made Packet");
+        DatagramPacket pack = new DatagramPacket(bData, bData.length, add, Integer.parseInt(info[1])); //Making response
         temp.send(pack); //Sending Response
-        temp.close(); //Closing temp UDP socket
 
+
+        temp.close(); //Closing temp UDP socket
         System.out.println("Got to end, trying to send back to client");
     }
 

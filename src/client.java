@@ -14,6 +14,7 @@ public class client {
 
         //For UDP connections
         byte[] buffer;
+        byte[] responseBuf = new byte[2048];
         InetAddress address;
         int port;
 
@@ -22,8 +23,8 @@ public class client {
 
 
         //Setting up UDP socket and user input
-        DatagramSocket sock = new DatagramSocket(20270, InetAddress.getLocalHost());
         DatagramPacket packet;
+        DatagramSocket sock = new DatagramSocket(20270, InetAddress.getLocalHost());
         Scanner in = new Scanner(System.in);
 
 
@@ -34,10 +35,12 @@ public class client {
             packet = new DatagramPacket(buffer, buffer.length,InetAddress.getLocalHost(),100);
             sock.send(packet);
 
-            packet = new DatagramPacket(buffer, buffer.length);
+            //Waiting for response
+            packet = new DatagramPacket(responseBuf, responseBuf.length);
             sock.receive(packet);
             response = new String(packet.getData(), 0, packet.getLength());
-            //System.out.println(response);
+            sock.close();
+            System.out.println(response);
         }
 
 
