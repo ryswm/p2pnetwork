@@ -40,6 +40,11 @@ public class client {
         Scanner in = new Scanner(System.in);
         System.out.println("Please enter the port that will be used by this network client: ");
         port = Integer.parseInt(in.nextLine());
+        System.out.println("Please enter the port that will be used by the first dirServ: ");
+        int dirPort = Integer.parseInt(in.nextLine());
+        System.out.println("Please enter the ip that will be used by the first dirServ: ");
+        InetAddress dirIP = InetAddress.getByName(in.nextLine());
+
 
         //Starting TCP and server functions of client
         TCP client;
@@ -53,7 +58,7 @@ public class client {
             clientRequest = in.nextLine();
             if (clientRequest.equals("init")) { // INIT command, makes new udp connection and waits for a response on same socket
                 buffer = clientRequest.getBytes();
-                packet = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), 100);
+                packet = new DatagramPacket(buffer, buffer.length, dirIP, dirPort);
                 sock.send(packet);
 
                 //Waiting for response
@@ -233,7 +238,7 @@ class Server extends Thread {
                     inStream.read(fArray,0, fArray.length);
 
                     os.write(fArray,0,fArray.length);
-                    
+
                     os.flush();
 
                     os.close();
