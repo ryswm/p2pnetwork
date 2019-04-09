@@ -172,7 +172,8 @@ class TCP extends Thread {
                 out.writeBytes(data + '\n');
                 out.flush();
 
-                fOut = new FileOutputStream("/Users/ryan/Desktop/" + data);
+                File desktopDir = new File(System.getProperty("user.home"),"Desktop");
+                fOut = new FileOutputStream(desktopDir.getPath() + data);
                 in = dest.getInputStream();
 
 
