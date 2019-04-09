@@ -41,7 +41,8 @@ public class client {
         System.out.println("Please enter the port that will be used by this network client: ");
         port = Integer.parseInt(in.nextLine());
 
-        //Starting server functions of client
+        //Starting TCP and server functions of client
+        TCP client;
         Server serv = new Server(port);
         serv.start();
 
@@ -120,18 +121,19 @@ public class client {
                 packet = new DatagramPacket(responseBuf, responseBuf.length);
                 sock.receive(packet);
                 response = new String(packet.getData(), 0, packet.getLength());
-                sock.close(); //Closing socket
 
                 if (!response.equals("404")) {
                     System.out.println("Please type the ip of peer to download from: (Please include the # and port number)");
                     System.out.println(response);
                     downloadAdd = in.nextLine();
 
-                    download(fileName, downloadAdd);
+                    client = new TCP(fileName, downloadAdd);
+                    client.start();
+
                 } else {
                     System.out.println("File not found");
                 }
-
+                sock.close(); //Closing socket
             } else if (clientRequest.equals("exit")) {
                 running = false;
             }
@@ -139,33 +141,51 @@ public class client {
         }
 
     }
+}
 
-    public static void download(String fileName, String ip) throws Exception {
-        byte[] newPic = new byte[10000];
+class TCP extends Thread {
+    String data; //Message received from other server
+    Socket dest;
+    DataOutputStream out;
+    FileOutputStream fOut;
+    InputStream in;
+    byte[] buffer;
+    int bytesRead;
+
+
+    TCP(String filename, String ip) throws Exception{
         String[] connectionInfo = ip.split("#", 2); //Splitting IP int IP and port
-
-        System.out.println(connectionInfo[0] + ":" + Integer.parseInt(connectionInfo[1]));
-        //Making socket out stream and sending filename request
-        Socket socket = new Socket(InetAddress.getByName(connectionInfo[0]), Integer.parseInt(connectionInfo[1]));
-        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        out.writeBytes(fileName);
-        out.flush();
-
-        FileOutputStream fos = new FileOutputStream("/Users/ryan/Desktop/" + fileName);
-        BufferedOutputStream bos = new BufferedOutputStream(fos);
-        InputStream is = socket.getInputStream();
-
-        int bytesRead = 0;
-
-        while((bytesRead=is.read(newPic))!=-1)
-            bos.write(newPic, 0, bytesRead);
-
-        bos.flush();
-        socket.close();
-
-        System.out.println("File saved successfully!");
+        dest = new Socket(InetAddress.getByName(connectionInfo[0]), Integer.parseInt(connectionInfo[1]));
+        data = filename;
+        out = new DataOutputStream(dest.getOutputStream());
     }
 
+    public void run(){
+            try{
+                buffer = new byte[4096];
+
+                out.writeBytes(data + '\n');
+                out.flush();
+
+                fOut = new FileOutputStream("/Users/ryan/Desktop/" + data);
+                in = dest.getInputStream();
+
+
+                in.read(buffer,0,buffer.length);
+                fOut.write(buffer,0,buffer.length);
+                fOut.flush();
+
+
+                out.close();
+                fOut.close();
+                in.close();
+                dest.close();
+
+                System.out.println("Query sent");
+            } catch(Exception e){
+                System.out.println("Exception TCP Server");
+            }
+    }
 }
 
 //For acting as server, not used yet
@@ -179,6 +199,7 @@ class Server extends Thread {
     BufferedInputStream bufStream;
     byte[] fArray;
     OutputStream os = null;
+
 
     public Hashtable<String, String> records = new Hashtable<>();
 
@@ -196,49 +217,32 @@ class Server extends Thread {
 
                 BufferedReader in = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 
-                System.out.println("Connection Accepted with " + connectionSocket.getRemoteSocketAddress());
-                System.out.println(in.ready());
-                System.out.println(in.readLine() != null);
                 String filename = in.readLine();
 
-                if (records.containsKey(filename)) {
-                    System.out.println("Uploading file");
+                System.out.println(filename);
+                System.out.println(records.containsKey(filename));
 
-                    pic = new File(data);
+                if(records.containsKey(filename)) {
+
+                    pic = new File("/Users/ryan/Desktop/Networks/p2pnetwork/src/" + filename);
                     inStream = new FileInputStream(pic);
-                    bufStream = new BufferedInputStream(inStream);
                     os = connectionSocket.getOutputStream();
 
-                    byte[] contents;
-                    long fileLength = pic.length();
-                    long current = 0;
 
-                    long start = System.nanoTime();
-                    while(current!=fileLength){
-                        int size = 10000;
-                        if(fileLength - current >= size)
-                            current += size;
-                        else{
-                            size = (int)(fileLength - current);
-                            current = fileLength;
-                        }
-                        contents = new byte[size];
-                        bufStream.read(contents, 0, size);
-                        os.write(contents);
-                        System.out.print("Sending file ... "+(current*100)/fileLength+"% complete!");
-                    }
+                    fArray = new byte[4096];
+                    inStream.read(fArray,0, fArray.length);
 
-                    in.close();
+                    os.write(fArray,0,fArray.length);
+                    
                     os.flush();
-                    connectionSocket.close();
 
-                    System.out.println("File Uploaded");
-
+                    os.close();
+                    System.out.println("File Sent");
                 }else{
                     System.out.println("Doesnt have");
                     in.close();
                 }
-
+                in.close();
             } catch (Exception e) {
                 //System.out.println(e);
             }
