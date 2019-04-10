@@ -97,7 +97,7 @@ class ClientConnection extends Thread {
         String[] thisIP = InetAddress.getLocalHost().toString().split("/", 2);
 
         DataOutputStream outToServer = new DataOutputStream(connection.getOutputStream());
-        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + thisIP[1] + "#" + this.port); //init\n clientIP:clientPort\n dirServIP#dirServPort
+        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + "/" + thisIP[1] + "#" + this.port); //init\n clientIP:clientPort\n dirServIP#dirServPort
 
         outToServer.close(); //Closing outward stream
         connection.close(); //Closing connection

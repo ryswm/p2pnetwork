@@ -101,9 +101,9 @@ public class client {
 
                 File checkDir = new File(System.getProperty("user.dir", fileName));
                 File dir = new File(checkDir.toString() + "/" + fileName);
-                if(checkDir.exists()){
+                /*if(checkDir.exists()){
                     System.out.println("File already exists on local disk");
-                }else {
+                }else {*/
                     packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
                     sock.send(packet);
 
@@ -125,7 +125,7 @@ public class client {
                     } else {
                         System.out.println("File not found");
                     }
-                }
+                //}
                 sock.close(); //Closing socket
             } else if (clientRequest.equals("exit")) {
                 running = false;
