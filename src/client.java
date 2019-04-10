@@ -19,7 +19,7 @@ public class client {
         //For UDP connections
         byte[] buffer = new byte[2048];
         byte[] responseBuf = new byte[2048];
-        byte[] tempBuf = new byte[2048];
+        byte[] tempBuf = new byte[1000000];
         InetAddress address;
         int port;
 
