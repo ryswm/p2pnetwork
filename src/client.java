@@ -100,6 +100,7 @@ public class client {
                 tempBuf = fileName.getBytes();
 
                 File checkDir = new File(System.getProperty("user.dir", fileName));
+                File dir = new File(checkDir.toString() + "/" + fileName);
                 if(checkDir.exists()){
                     System.out.println("File already exists on local disk");
                 }else {
