@@ -117,26 +117,33 @@ public class client {
                 packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
                 sock.send(packet);
 
-                //Sending filename that is being requested
+                //Checking and Sending filename that is being requested
                 tempBuf = fileName.getBytes();
-                packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
-                sock.send(packet);
 
-                //Waiting for response
-                packet = new DatagramPacket(responseBuf, responseBuf.length);
-                sock.receive(packet);
-                response = new String(packet.getData(), 0, packet.getLength());
+                File checkDir = new File(System.getProperty("user.dir", fileName));
+                if(checkDir.exists()){
+                    System.out.println("File already exists on local disk");
+                }else {
+                    packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
+                    sock.send(packet);
 
-                if (!response.equals("404")) {
-                    System.out.println("Please type the ip of peer to download from: (Please include the # and port number)");
-                    System.out.println(response);
-                    downloadAdd = in.nextLine();
+                    //Waiting for response
+                    packet = new DatagramPacket(responseBuf, responseBuf.length);
+                    sock.receive(packet);
+                    response = new String(packet.getData(), 0, packet.getLength());
 
-                    client = new TCP(fileName, downloadAdd);
-                    client.start();
+                    if (!response.equals("404")) {
+                        System.out.println("Please type the ip of peer to download from: (Please include the # and port number)");
+                        System.out.println(response);
+                        downloadAdd = in.nextLine();
 
-                } else {
-                    System.out.println("File not found");
+
+                        client = new TCP(fileName, downloadAdd);
+                        client.start();
+
+                    } else {
+                        System.out.println("File not found");
+                    }
                 }
                 sock.close(); //Closing socket
             } else if (clientRequest.equals("exit")) {
@@ -172,8 +179,9 @@ class TCP extends Thread {
                 out.writeBytes(data + '\n');
                 out.flush();
 
-                File desktopDir = new File(System.getProperty("user.home"),"Desktop");
-                fOut = new FileOutputStream(desktopDir.getPath() + data);
+                File desktopDir = new File(System.getProperty("user.dir"));
+
+                fOut = new FileOutputStream(desktopDir.getPath() + "/" + data);
                 in = dest.getInputStream();
 
 
