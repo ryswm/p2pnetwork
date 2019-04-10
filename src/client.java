@@ -1,3 +1,5 @@
+//Author: Ryan Woodworth : 500752821
+//Client Program
 import javax.imageio.ImageIO;
 import javax.xml.crypto.Data;
 import java.awt.image.BufferedImage;
@@ -51,29 +53,41 @@ public class client {
         Server serv = new Server(port);
         serv.start();
 
+        sock = new DatagramSocket(port, InetAddress.getLocalHost());
+
+        System.out.println("Please first type init");
+        //Possible actions for client
+        clientRequest = in.nextLine();
+        if (clientRequest.equals("init")) { // INIT command, makes new udp connection and waits for a response on same socket
+            buffer = clientRequest.getBytes();
+            packet = new DatagramPacket(buffer, buffer.length, dirIP, dirPort);
+            sock.send(packet);
+
+            //Waiting for response
+            packet = new DatagramPacket(responseBuf, responseBuf.length);
+            sock.receive(packet);
+            response = new String(packet.getData(), 0, packet.getLength());
+            sock.close(); //Closing socket
+
+            //Splitting response from server pool and adding to pool hashtable
+            String[] temp = response.split(" ", 4);
+            for (int i = 0; i < 4; i++) {
+                pool.put(i + 1, temp[i]);
+                System.out.println(pool.get(i + 1));
+            }
+        }
+        else{
+            running = false;
+        }
+
         while (running) {
             sock = new DatagramSocket(port, InetAddress.getLocalHost());
 
+            System.out.println("Type inform to upload, query to download, or exit to stop program: ");
             //Possible actions for client
             clientRequest = in.nextLine();
-            if (clientRequest.equals("init")) { // INIT command, makes new udp connection and waits for a response on same socket
-                buffer = clientRequest.getBytes();
-                packet = new DatagramPacket(buffer, buffer.length, dirIP, dirPort);
-                sock.send(packet);
 
-                //Waiting for response
-                packet = new DatagramPacket(responseBuf, responseBuf.length);
-                sock.receive(packet);
-                response = new String(packet.getData(), 0, packet.getLength());
-                sock.close(); //Closing socket
-
-                //Splitting response from server pool and adding to pool hashtable
-                String[] temp = response.split(" ", 4);
-                for (int i = 0; i < 4; i++) {
-                    pool.put(i + 1, temp[i]);
-                    System.out.println(pool.get(i + 1));
-                }
-            } else if (clientRequest.equals("inform")) {
+            if (clientRequest.equals("inform")) {
                 System.out.println("Please enter the file for which to upload: ");
                 fileName = in.nextLine();
                 inform(fileName,sock, pool, serv);
@@ -180,7 +194,7 @@ class TCP extends Thread {
 
     public void run(){
             try{
-                buffer = new byte[4096];
+                buffer = new byte[10000];
 
                 out.writeBytes(data + '\n');
                 out.flush();
@@ -251,7 +265,7 @@ class Server extends Thread {
                     os = connectionSocket.getOutputStream();
 
 
-                    fArray = new byte[4096];
+                    fArray = new byte[10000];
                     inStream.read(fArray,0, fArray.length);
 
                     os.write(fArray,0,fArray.length);
