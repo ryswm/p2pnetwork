@@ -94,9 +94,10 @@ class ClientConnection extends Thread {
     //Handles "init" command for server in pool with ID = 1, transforms UDP connection with client into TCP connection with dirServer pool
     private void init(InetAddress ip, int port) throws Exception {
         Socket connection = new Socket(nextIP, nextPort);
+        String[] thisIP = InetAddress.getLocalHost().toString().split("/", 2);
 
         DataOutputStream outToServer = new DataOutputStream(connection.getOutputStream());
-        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + ip.toString() + "#" + this.port); //init\n clientIP:clientPort\n dirServIP#dirServPort
+        outToServer.writeBytes("init" + '\n' + ip.toString() + ':' + port + '\n' + thisIP[1] + "#" + this.port); //init\n clientIP:clientPort\n dirServIP#dirServPort
 
         outToServer.close(); //Closing outward stream
         connection.close(); //Closing connection
