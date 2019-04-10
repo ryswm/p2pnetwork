@@ -109,6 +109,12 @@ class ClientConnection extends Thread {
         //Extracting record
         String[] info = data.split(":", 2); //Stored as contentName:/IP
         String[] ip = info[1].split("/", 2); //Taking / off IP
+        System.out.println("Split string");
+
+        if(table.containsKey(info[0])){
+            String ipList = table.get(info[0]);
+            ipList += " " + ip[1];
+        }
 
         //Adding to hashtable and displaying to server console
         table.put(info[0], ip[1]);

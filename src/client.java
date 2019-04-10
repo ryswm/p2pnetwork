@@ -76,28 +76,7 @@ public class client {
             } else if (clientRequest.equals("inform")) {
                 System.out.println("Please enter the file for which to upload: ");
                 fileName = in.nextLine();
-
-                //Hashing filename
-                key = fileName.hashCode();
-                key = Math.abs((key % 4) + 1);
-
-                //Extracting info for transmission
-                info = pool.get(key).split("#", 2); //Stored as IP#Port
-                ip = info[0].split("/", 2); //Taking / off IP
-
-
-                //Sending inform message
-                buffer = "inform".getBytes();
-                packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
-                sock.send(packet);
-
-                //Sending filename
-                tempBuf = (fileName + ":" + InetAddress.getLocalHost().toString() + "#" + port).getBytes();
-                packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
-                sock.send(packet);
-
-                serv.records.put(fileName, key + ip[1]);
-
+                inform(fileName,sock, pool, serv);
                 sock.close(); //Closing socket
 
             } else if (clientRequest.equals("query")) {
@@ -133,13 +112,14 @@ public class client {
                     response = new String(packet.getData(), 0, packet.getLength());
 
                     if (!response.equals("404")) {
-                        System.out.println("Please type the ip of peer to download from: (Please include the # and port number)");
+                        System.out.println("Please type the ip of peer to download from: (Please include the '#' and port number)");
                         System.out.println(response);
                         downloadAdd = in.nextLine();
 
 
                         client = new TCP(fileName, downloadAdd);
                         client.start();
+                        inform(fileName, sock, pool, serv);
 
                     } else {
                         System.out.println("File not found");
@@ -152,6 +132,31 @@ public class client {
 
         }
 
+    }
+
+    public static void inform(String fileName, DatagramSocket sock, Hashtable<Integer, String> pool, Server serv) throws Exception {
+        //Hashing filename
+        int key = fileName.hashCode();
+        key = Math.abs((key % 4) + 1);
+
+        //Extracting info for transmission
+        String[] info = pool.get(key).split("#", 2); //Stored as IP#Port
+        String[] ip = info[0].split("/", 2); //Taking / off IP
+
+
+        //Sending inform message
+        byte[] buffer = new byte[2048];
+        buffer = "inform".getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
+        sock.send(packet);
+
+        //Sending filename
+        byte[] tempBuf = new byte[2048];
+        tempBuf = (fileName + ":" + InetAddress.getLocalHost().toString() + "#" + sock.getLocalPort()).getBytes();
+        packet = new DatagramPacket(tempBuf, tempBuf.length, InetAddress.getByName(ip[1]), Integer.parseInt(info[1]));
+        sock.send(packet);
+
+        serv.records.put(fileName, key + ip[1]);
     }
 }
 
@@ -208,6 +213,7 @@ class Server extends Thread {
     ServerSocket sock;
     String data;
 
+    File directory;
     File pic;
     FileInputStream inStream;
     BufferedInputStream bufStream;
@@ -219,6 +225,7 @@ class Server extends Thread {
 
     Server(int port) throws Exception {
         sock = new ServerSocket(port);
+        //
         System.out.println("Listening on port " + port);
     }
 
@@ -237,8 +244,8 @@ class Server extends Thread {
                 System.out.println(records.containsKey(filename));
 
                 if(records.containsKey(filename)) {
-
-                    pic = new File("/Users/ryan/Desktop/Networks/p2pnetwork/src/" + filename);
+                    directory = new File(System.getProperty("user.dir"));
+                    pic = new File(directory + "/" + filename);
                     inStream = new FileInputStream(pic);
                     os = connectionSocket.getOutputStream();
 
