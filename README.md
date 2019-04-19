@@ -1,6 +1,6 @@
-# p2pnetwork
 
-Team Network application for CPS706
+
+#Team Network application for CPS706
 
 This applications acts as a file sharing network. 
 Composed of 2 programs: 
